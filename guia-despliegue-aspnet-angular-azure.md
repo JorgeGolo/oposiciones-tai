@@ -137,7 +137,7 @@ Desde VS Code, con la extensión **Azure App Service** instalada:
 1. Abre la pestaña de Azure (icono en la barra lateral).
 2. Click derecho en "App Service" → **Create New Web App... (Advanced)**.
 3. Sigue el asistente:
-   - Nombre único (ej. `api-oposicion-tai-tunombre`)
+   - Nombre único (ej. `api-oposicion-tai-jorgegl`) api-oposicion-tai-jorgegl
    - Grupo de recursos: crea uno nuevo, ej. `rg-oposicion-tai`
    - Runtime stack: **.NET 9 (o la versión que uses)**
    - Sistema operativo: Windows o Linux (cualquiera funciona)
@@ -147,7 +147,12 @@ Desde VS Code, con la extensión **Azure App Service** instalada:
 5. Confirma "Deploy" cuando te avise de que sobrescribirá el contenido.
 6. Al terminar, te dará la opción de "Browse Website" — pruébala con `/swagger` al final de la URL.
 
-Apunta la URL final (algo como `https://api-oposicion-tai-tunombre.azurewebsites.net`) — la necesitas para el siguiente paso.
+Apunta la URL final (algo como `https://api-oposicion-tai-jorgegl.azurewebsites.net`) — la necesitas para el siguiente paso.
+
+Fue necesario hacer dotnet publish -c Release -o publish
+dentro de backend antes de subir
+y luego
+Ahora, en el explorador de archivos de VS Code, busca esa nueva carpeta backend/publish, haz click derecho sobre ella (no sobre backend) → Deploy to Web App... → selecciona tu app api-oposicion-tai-jorgegl → confirma sobrescribir.
 
 ---
 

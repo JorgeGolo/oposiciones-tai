@@ -1,0 +1,9 @@
+C:\net_proyecto\oposiciones-tai\backend\publish\Backend.exe
+C:\net_proyecto\oposiciones-tai\backend\publish\appsettings.Development.json
+C:\net_proyecto\oposiciones-tai\backend\publish\appsettings.json
+C:\net_proyecto\oposiciones-tai\backend\publish\Backend.dll
+C:\net_proyecto\oposiciones-tai\backend\publish\Backend.deps.json
+C:\net_proyecto\oposiciones-tai\backend\publish\Backend.runtimeconfig.json
+C:\net_proyecto\oposiciones-tai\backend\publish\Backend.pdb
+C:\net_proyecto\oposiciones-tai\backend\publish\Microsoft.AspNetCore.OpenApi.dll
+C:\net_proyecto\oposiciones-tai\backend\publish\Microsoft.OpenApi.dll
