@@ -180,6 +180,26 @@ Comprueba la ruta de salida (normalmente `dist/frontend/browser` en versiones re
 
 ---
 
+Ejecuta esto dentro de frontend:
+cd frontend
+ng generate environments
+Esto va a crear automáticamente:
+
+src/environments/environment.ts (producción)
+src/environments/environment.development.ts (desarrollo)
+
+y configurará angular.json para que intercambie uno por otro según el tipo de build.
+Después, abre environment.ts y déjalo así (con la URL real de tu backend):
+typescriptexport const environment = {
+production: true,
+apiUrl: 'https://api-oposicion-tai-jorgegl.azurewebsites.net'
+};
+Y environment.development.ts así:
+typescriptexport const environment = {
+production: false,
+apiUrl: 'https://localhost:5026'
+};
+
 ## 7. Conectar todo: actualizar CORS y la URL de producción
 
 1. En `frontend/src/environments/environment.prod.ts`, sustituye `CAMBIAR-TRAS-DESPLEGAR` por la URL real del backend del paso 5.
