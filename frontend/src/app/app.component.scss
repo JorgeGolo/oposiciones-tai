@@ -1,0 +1,19 @@
+.sidebar {
+  // Esto le dará un tono gris/azul sutil (#efedf0), separándolo del fondo
+  background-color: var(--mat-sys-surface-container);
+  // Y esto le mete una línea de separación perfecta
+  border-right: 1px solid var(--mat-sys-outline-variant);
+}
+.sidebar__brand {
+  color: var(--mat-sys-primary); // Usará el azul vivo #005cbb
+  font-weight: bold;
+}
+// Estilo para destacar la sección activa del menú lateral
+.active-link {
+  // Le damos un fondo sutil del color del contenedor principal
+  background-color: var(--mat-sys-primary-container) !important;
+  // Cambiamos el color del texto al color on-container para asegurar contraste
+  color: var(--mat-sys-on-primary-container) !important;
+  font-weight: 500;
+  border-left: 4px solid var(--mat-sys-primary); // Una barrita azul a la izquierda
+}

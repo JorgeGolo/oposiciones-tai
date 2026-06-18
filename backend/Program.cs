@@ -12,7 +12,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:4200",          // Angular en local
-                "https://CAMBIAR-TRAS-DESPLEGAR.azurestaticapps.net" // lo rellenamos en el paso 8
+                "https://purple-ground-07ca81003.7.azurestaticapps.net/" // lo rellenamos en el paso 8
               )
               .AllowAnyHeader()
               .AllowAnyMethod();

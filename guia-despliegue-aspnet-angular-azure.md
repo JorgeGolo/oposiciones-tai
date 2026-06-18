@@ -214,9 +214,20 @@ git push
 
 El push relanzará automáticamente el GitHub Action y desplegará la nueva versión.
 
-4. Abre la URL del frontend en el navegador, comprueba que carga los datos de la API y revisa la consola del navegador (F12) por si hay errores de CORS.
-
 ---
+
+## Desplieges
+
+Frontend → DESDE LA CARPETA "PADRE" DEL PROYECTO
+solo git add . && git commit -m "..." && git push. Eso dispara automáticamente el GitHub Action que compila y despliega en Static Web Apps, no tienes que tocar nada en VS Code para esa parte.
+
+Backend → con la extensión de Azure, pero recuerda el paso que corregimos: primero dotnet publish -c Release -o publish dentro de backend, y luego "Deploy to Web App..." haciendo click derecho sobre la carpeta publish (no sobre backend directamente), o se repetirá el mismo problema de que suba el código fuente sin compilar.
+Así que el ciclo completo cuando cambies algo en el backend sería:
+cd backend
+dotnet publish -c Release -o publish
+y luego click derecho en backend/publish → Deploy to Web App.
+
+--
 
 ## 8. Que nunca te cobren nada (checklist de seguridad)
 
@@ -229,6 +240,7 @@ El push relanzará automáticamente el GitHub Action y desplegará la nueva vers
 
 ## 9. Próximos pasos
 
+- Probar la conexión de frontend y bacjed, creamdop un servicio del backend y consumiéndolo
 - Añadir una base de datos real con Azure SQL Database (free offer) + Entity Framework Core.
 - Configurar un dominio personalizado gratuito en Static Web Apps (incluye SSL).
 - Seguir con los módulos de Microsoft Learn de App Service, Functions y Storage que comentamos, usando este mismo proyecto como laboratorio práctico.

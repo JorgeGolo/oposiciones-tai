@@ -1,0 +1,455 @@
+<h1>Guía paso a paso: ASP.NET Core + Angular en Azure, gratis</h1>
+
+<p>Arquitectura que vamos a montar:</p>
+
+<ul>
+  <li>
+    <strong>Backend</strong>: ASP.NET Core Web API &rarr; Azure App Service,
+    plan <strong>F1 (Free)</strong>
+  </li>
+  <li>
+    <strong>Frontend</strong>: Angular &rarr; Azure Static Web Apps, plan
+    <strong>Free</strong>
+  </li>
+  <li>
+    <strong>Base de datos</strong> (fase opcional más adelante): Azure SQL
+    Database, <em>free offer</em>
+  </li>
+</ul>
+
+<p>Entorno: Windows + Visual Studio Code.</p>
+
+<hr />
+
+<h2>0. Antes de empezar: herramientas a instalar</h2>
+
+<table border="1">
+  <thead>
+    <tr>
+      <th>Herramienta</th>
+      <th>Para qué</th>
+      <th>Cómo instalar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>.NET SDK (8 o 9 LTS)</td>
+      <td>Backend</td>
+      <td>
+        <code>winget install Microsoft.DotNet.SDK.9</code> o desde
+        https://dotnet.microsoft.com/download
+      </td>
+    </tr>
+    <tr>
+      <td>Node.js LTS</td>
+      <td>Angular CLI necesita Node</td>
+      <td><code>winget install OpenJS.NodeJS.LTS</code></td>
+    </tr>
+    <tr>
+      <td>Angular CLI</td>
+      <td>Crear/compilar el frontend</td>
+      <td><code>npm install -g &#64;angular/cli</code> (tras instalar Node)</td>
+    </tr>
+    <tr>
+      <td>Git</td>
+      <td>Control de versiones, necesario para Static Web Apps</td>
+      <td><code>winget install Git.Git</code></td>
+    </tr>
+    <tr>
+      <td>Azure CLI</td>
+      <td>Crear recursos desde terminal</td>
+      <td><code>winget install Microsoft.AzureCLI</code></td>
+    </tr>
+    <tr>
+      <td>Visual Studio Code</td>
+      <td>Editor</td>
+      <td>ya lo tienes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  Extensiones de VS Code (búscalas en el icono de extensiones, Ctrl+Shift+X):
+</p>
+
+<ul>
+  <li><strong>C# Dev Kit</strong> (<code>ms-dotnettools.csdevkit</code>)</li>
+  <li>
+    <strong>Azure App Service</strong>
+    (<code>ms-azuretools.vscode-azureappservice</code>)
+  </li>
+  <li>
+    <strong>Azure Static Web Apps</strong>
+    (<code>ms-azuretools.vscode-azurestaticwebapps</code>)
+  </li>
+  <li>
+    <strong>Azure Resources</strong>
+    (<code>ms-azuretools.vscode-azureresourcegroups</code>) &mdash; se instala
+    junto a las anteriores
+  </li>
+</ul>
+
+<p>
+  Verifica que todo está instalado abriendo una terminal (Ctrl+`) en VS Code:
+</p>
+
+<pre><code>dotnet --version
+node -v
+ng version
+git --version
+az version</code></pre>
+
+<hr />
+
+<h2>1. Crear la cuenta de Azure</h2>
+
+<ol>
+  <li>
+    Ve a https://azure.microsoft.com/free (o a la oferta "Azure for Students" si
+    eres estudiante universitario, que no pide tarjeta).
+  </li>
+  <li>
+    Regístrate con una cuenta Microsoft (puedes crear una nueva si no quieres
+    usar tu correo personal).
+  </li>
+  <li>
+    Si no eres estudiante, te pedirá una tarjeta solo para verificar identidad
+    &mdash; no te cobrará nada mientras no actives "pago por uso"
+    voluntariamente.
+  </li>
+  <li>Una vez creada, inicia sesión desde la terminal:</li>
+</ol>
+
+<pre><code>az login</code></pre>
+
+<p>
+  Se abrirá el navegador para autenticarte. Cuando vuelva a la terminal y veas
+  tu suscripción listada, ya estás dentro.
+</p>
+
+<hr />
+
+<h2>2. Crear el backend (ASP.NET Core Web API)</h2>
+
+<pre><code>mkdir oposicion-tai
+cd oposicion-tai
+dotnet new webapi -n Backend -o backend
+cd backend
+dotnet run</code></pre>
+
+<p>
+  Abre la URL que te indique la terminal para comprobar que la API de ejemplo
+  funciona. Detén el servidor con Ctrl+C.
+</p>
+
+<h3>Habilitar CORS (imprescindible para que Angular pueda llamar a la API)</h3>
+
+<p>
+  Abre <code>Program.cs</code> y añade, <strong>antes</strong> de
+  <code>var app = builder.Build();</code>:
+</p>
+
+<pre><code>builder.Services.AddCors(options =&gt;
+&#123;
+    options.AddPolicy("FrontendPolicy", policy =&gt;
+    &#123;
+        policy.WithOrigins(
+                "http://localhost:4200",          // Angular en local
+                "https://CAMBIAR-TRAS-DESPLEGAR.azurestaticapps.net" // lo rellenamos en el paso 8
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    &#125;);
+&#125;);</code></pre>
+
+<p>
+  Y justo después de <code>var app = builder.Build();</code>, antes de
+  <code>app.MapControllers();</code>:
+</p>
+
+<pre><code>app.UseCors("FrontendPolicy");</code></pre>
+
+<p>
+  Deja, de momento, el controlador de ejemplo
+  <code>WeatherForecastController</code> &mdash; nos sirve para probar la
+  conexión end-to-end antes de complicar nada.
+</p>
+
+<hr />
+
+<h2>3. Crear el frontend (Angular)</h2>
+
+<p>Vuelve a la carpeta raíz del proyecto:</p>
+
+<pre><code>cd ..
+ng new frontend --routing --style=scss
+cd frontend
+ng serve</code></pre>
+
+<p>
+  Abre <code>http://localhost:4200</code> y deberías ver la página de bienvenida
+  de Angular.
+</p>
+
+<h2>4. Subir el código a GitHub</h2>
+
+<p>
+  Azure Static Web Apps se despliega de forma nativa conectando un repositorio
+  de GitHub (es la vía gratuita más cómoda).
+</p>
+
+<pre><code>cd ..
+git init
+git add .
+git commit -m "Primer commit: backend + frontend"</code></pre>
+
+<p>
+  Crea un repositorio nuevo y vacío en https://github.com/new (puedes llamarlo
+  <code>oposicion-tai</code>), y luego:
+</p>
+
+<pre><code>git remote add origin https://github.com/TU-USUARIO/oposicion-tai.git
+git branch -M main
+git push -u origin main</code></pre>
+
+<hr />
+
+<h2>5. Crear y despliegar el backend en Azure App Service</h2>
+
+<p>
+  Desde VS Code, con la extensión
+  <strong>Azure App Service</strong> instalada:
+</p>
+
+<ol>
+  <li>Abre la pestaña de Azure (icono en la barra lateral).</li>
+  <li>
+    Click derecho en "App Service" &rarr;
+    <strong>Create New Web App... (Advanced)</strong>.
+  </li>
+  <li>
+    Sigue el asistente:
+    <ul>
+      <li>
+        Nombre único (ej. <code>api-oposicion-tai-jorgegl</code>)
+        api-oposicion-tai-jorgegl
+      </li>
+      <li>
+        Grupo de recursos: crea uno nuevo, ej.
+        <code>rg-oposicion-tai</code>
+      </li>
+      <li>Runtime stack: <strong>.NET 9 (o la versión que uses)</strong></li>
+      <li>Sistema operativo: Windows o Linux (cualquiera funciona)</li>
+      <li>
+        Plan de hospedaje:
+        <strong>elige "Free" / F1 explícitamente</strong> &mdash; este es el
+        paso más importante para no pagar nada
+      </li>
+      <li>Región: West Europe o North Europe (más cercanas)</li>
+    </ul>
+  </li>
+  <li>
+    Cuando termine de crear el recurso, click derecho en la carpeta
+    <code>backend</code> desde el explorador de archivos de VS Code &rarr;
+    <strong>Deploy to Web App...</strong> &rarr; selecciona la app que acabas de
+    crear.
+  </li>
+  <li>Confirma "Deploy" cuando te avise de que sobrescribirá el contenido.</li>
+  <li>
+    Al terminar, te dará la opción de "Browse Website" &mdash; pruébala con
+    <code>/swagger</code> al final de la URL.
+  </li>
+</ol>
+
+<p>
+  Fue necesario hacer
+  <code>dotnet publish -c Release -o publish</code> dentro de backend antes de
+  subir y luego:
+</p>
+
+<p>
+  Ahora, en el explorador de archivos de VS Code, busca esa nueva carpeta
+  <code>backend/publish</code>, haz click derecho sobre ella (no sobre backend)
+  &rarr; <strong>Deploy to Web App...</strong> &rarr; selecciona tu app
+  api-oposicion-tai-jorgegl &rarr; confirma sobrescribir.
+</p>
+
+<p>
+  Apunta la URL final (algo como
+  <code>https://api-oposicion-tai-jorgegl.azurewebsites.net</code>) &mdash; la
+  necesitas para el siguiente paso.
+</p>
+
+<hr />
+
+<h2>6. Crear y despliegar el frontend en Azure Static Web Apps</h2>
+
+<ol>
+  <li>
+    Compila el proyecto de producción primero, para ver dónde deja los archivos:
+  </li>
+</ol>
+
+<pre><code>cd frontend
+ng build</code></pre>
+
+<p>
+  Comprueba la ruta de salida (normalmente
+  <code>dist/frontend/browser</code> en versiones recientes de Angular; en
+  versiones más antiguas puede ser solo <code>dist/frontend</code>). La
+  necesitarás en el asistente.
+</p>
+
+<ol start="2">
+  <li>
+    Desde VS Code, con la extensión
+    <strong>Azure Static Web Apps</strong>:
+    <ul>
+      <li>
+        Click derecho en "Static Web Apps" &rarr;
+        <strong>Create Static Web App... (Advanced)</strong>.
+      </li>
+      <li>Nombre del recurso, región, y elige plan <strong>Free</strong>.</li>
+      <li>
+        Te pedirá autenticarte con GitHub y seleccionar el repositorio y rama
+        (<code>main</code>) que subiste antes.
+      </li>
+      <li>Framework preset: <strong>Angular</strong>.</li>
+      <li>App location: <code>/frontend</code></li>
+      <li>
+        Output location: la ruta que comprobaste en el paso anterior (ej.
+        <code>dist/frontend/browser</code>)
+      </li>
+    </ul>
+  </li>
+  <li>
+    La extensión crea automáticamente un <em>GitHub Action</em> (un archivo
+    <code>.github/workflows/...yml</code>) en tu repositorio que compila y
+    despliega cada vez que haces <code>git push</code>.
+  </li>
+  <li>
+    Ve a tu repositorio en GitHub &rarr; pestaña
+    <strong>Actions</strong> &rarr; espera a que el workflow termine (icono
+    verde).
+  </li>
+  <li>
+    La extensión te dará la URL final (algo como
+    <code>https://nombre-aleatorio.azurestaticapps.net</code>).
+  </li>
+</ol>
+
+<p>Ejecuta esto dentro de frontend:</p>
+
+<pre><code>cd frontend
+ng generate environments</code></pre>
+
+<p>Esto va a crear automáticamente:</p>
+<ul>
+  <li><code>src/environments/environment.ts</code> (producción)</li>
+  <li><code>src/environments/environment.development.ts</code> (desarrollo)</li>
+</ul>
+
+<p>
+  Y configurará <code>angular.json</code> para que intercambie uno por otro
+  según el tipo de build.
+</p>
+
+<p>
+  Después, abre <code>environment.ts</code> y déjalo así (con la URL real de tu
+  backend):
+</p>
+
+<pre><code>export const environment = &#123;
+  production: true,
+  apiUrl: 'https://api-oposicion-tai-jorgegl.azurewebsites.net'
+&#125;</code></pre>
+
+<p>Y <code>environment.development.ts</code> así:</p>
+
+<pre><code>export const environment = &#123;
+  production: false,
+  apiUrl: 'https://localhost:5026'
+&#125;</code></pre>
+
+<hr />
+
+<h2>Despliegues</h2>
+
+<p>
+  <strong>Frontend &rarr; DESDE LA CARPETA "PADRE" DEL PROYECTO</strong><br />
+  Solo
+  <code>git add . &amp;&amp; git commit -m "..." &amp;&amp; git push</code>. Eso
+  dispara automáticamente el GitHub Action que compila y despliega en Static Web
+  Apps, no tienes que tocar nada en VS Code para esa parte.
+</p>
+
+<p>
+  <strong>Backend &rarr; con la extensión de Azure</strong>, pero recuerda el
+  paso que corregimos: primero
+  <code>dotnet publish -c Release -o publish</code> dentro de backend, y luego
+  "Deploy to Web App..." haciendo click derecho sobre la carpeta publish (no
+  sobre backend directamente), o se repetirá el mismo problema de que suba el
+  código fuente sin compilar.
+</p>
+
+<p>Así que el ciclo completo cuando cambies algo en el backend sería:</p>
+
+<pre><code>cd backend
+dotnet publish -c Release -o publish</code></pre>
+
+<p>
+  Y luego click derecho en <code>backend/publish</code> &rarr; Deploy to Web
+  App.
+</p>
+
+<hr />
+
+<h2>7. Que nunca te cobren nada (checklist de seguridad)</h2>
+
+<ul>
+  <li>
+    En el <a href="https://portal.azure.com">portal de Azure</a> &rarr;
+    <strong>Cost Management + Billing</strong> &rarr; <strong>Budgets</strong>,
+    crea un presupuesto de 0€ o 1€ con alerta por email al 80-100%. Así te
+    enteras al instante si algo empieza a generar coste.
+  </li>
+  <li>
+    Revisa que el plan de App Service siga marcado como
+    <strong>F1</strong> (Resource Group &rarr; tu App Service Plan &rarr;
+    Overview).
+  </li>
+  <li>
+    Si más adelante añades Azure SQL Database, elige siempre
+    <strong>"Auto-pausar hasta el mes siguiente"</strong>, nunca "continuar con
+    cargos adicionales".
+  </li>
+  <li>
+    Cuando termines de practicar, si quieres asegurarte del todo, borra el grupo
+    de recursos completo (<code>rg-oposicion-tai</code>) desde el portal &mdash;
+    esto borra todo de golpe sin dejar nada huérfano facturando.
+  </li>
+</ul>
+
+<hr />
+
+<h2>8. Próximos pasos</h2>
+
+<ul>
+  <li>
+    Probar la conexión de frontend y backend, creando un servicio del backend y
+    consumiéndolo.
+  </li>
+  <li>
+    Añadir una base de datos real con Azure SQL Database (free offer) + Entity
+    Framework Core.
+  </li>
+  <li>
+    Configurar un dominio personalizado gratuito en Static Web Apps (incluye
+    SSL).
+  </li>
+  <li>
+    Seguir con los módulos de Microsoft Learn de App Service, Functions y
+    Storage que comentamos, usando este mismo proyecto como laboratorio
+    práctico.
+  </li>
+</ul>

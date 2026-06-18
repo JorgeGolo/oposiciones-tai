@@ -1,0 +1,200 @@
+<div class="page-container">
+  <h1>Aprovisionamiento y Configuración de la Base de Datos</h1>
+  <p>
+    Guía paso a paso para desplegar Azure SQL Database de forma 100% gratuita y
+    conectarla de forma segura sin exponer credenciales.
+  </p>
+
+  <hr />
+
+  <h2>1. Crear Azure SQL Database con la Oferta Gratuita</h2>
+  <p>
+    Azure incluye un asistente simplificado que aplica la capa gratuita de forma
+    automática. Para configurarla sin errores:
+  </p>
+
+  <ol>
+    <li>
+      Ve al Portal de Azure, busca <strong>SQL databases</strong> en la barra
+      superior y haz clic en <strong>Create</strong>.
+    </li>
+    <li>
+      <strong>Verificación de la Oferta:</strong> Asegúrate de que aparece el
+      banner gris arriba del todo que indica:
+      <em
+        >"Oferta gratuita aplicada. Obtendrá 100 000 segundos de núcleo virtual,
+        32 GB de datos..."</em
+      >. En el lateral derecho, el resumen de costos debe marcar
+      <strong>Gratis</strong>.
+    </li>
+    <li>
+      En <strong>Detalles del proyecto</strong>, selecciona tu Suscripción y tu
+      Grupo de Recursos existente (<code>rg-oposicion-tai</code>).
+    </li>
+    <li>
+      Baja en la pantalla hasta la sección
+      <strong>Detalles de la base de datos</strong> (rellena lo siguiente):
+      <ul>
+        <li>
+          <strong>Nombre de la base de datos:</strong> Introduce
+          <code>db-oposicion-tai</code>.
+        </li>
+        <li>
+          <strong>Servidor:</strong> Haz clic en <em>Crear nuevo</em>. Ponle un
+          nombre único (ej. <code>sql-server-oposicion-jorge</code>), elige la
+          región (<code>West Europe</code>) y selecciona autenticación de tipo
+          <strong>SQL Authentication</strong>. Elige un usuario administrador
+          (ej. <code>dbadmin</code>) y una contraseña fuerte.
+          <em>(¡Guarda bien estos datos!)</em>.
+        </li>
+      </ul>
+    </li>
+    <li>
+      Haz clic en <strong>Siguiente: Redes (Networking)</strong> en la parte
+      inferior.
+    </li>
+    <li>
+      <strong>CRUCIAL:</strong> En la pestaña de Redes, busca la opción
+      <em
+        >"Permitir que los servicios y recursos de Azure accedan a este
+        servidor"</em
+      >
+      (Allow Azure services and resources to access this server) y márcala como
+      <strong>Sí</strong>. Si no lo haces, tu API de .NET no podrá leer las
+      tablas desde el App Service.
+    </li>
+    <li>
+      Haz clic en el botón azul <strong>Revisar y crear</strong> (Review +
+      create) del principio y confirma la creación.
+    </li>
+  </ol>
+  <p>Es necesario crear un servidor de la base de datos.</p>
+
+  <h2>2. Seguridad: Gestión del Connection String (Sin Datos Sensibles)</h2>
+  <p>
+    Para cumplir con las directivas de seguridad y no subir contraseñas a
+    GitHub, dividimos la configuración en dos entornos:
+  </p>
+
+  <h3>En Local (Desarrollo)</h3>
+  <p>
+    Guardamos la cadena de conexión en el archivo
+    <code>appsettings.Development.json</code> del backend, el cual debe estar
+    incluido en el archivo <code>.gitignore</code>:
+  </p>
+  <pre><code>&#123;
+  "ConnectionStrings": &#123;
+    "DefaultConnection": "Server=tcp:tu-servidor.database.windows.net,1433;Initial Catalog=db-oposicion-tai;Persist Security Info=False;User ID=tu_usuario;Password=TU_CONTRASEÑA_REAL;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  &#125;
+&#125;</code></pre>
+
+  <h3>En Producción (Azure App Service)</h3>
+  <p>
+    En el archivo de producción <code>appsettings.json</code> que se sube al
+    repositorio, dejamos la cadena vacía o con un token genérico:
+  </p>
+  <pre><code>&#123;
+  "ConnectionStrings": &#123;
+    "DefaultConnection": "ProductionConnectionPlaceholder"
+  &#125;
+&#125;</code></pre>
+  <p>
+    La contraseña real se inyecta directamente desde el panel de Azure de forma
+    encriptada:
+  </p>
+  <ul>
+    <li>
+      Ve a tu <strong>App Service</strong> (el backend) en el portal de Azure.
+    </li>
+    <li>
+      En el menú lateral, entra en <strong>Settings</strong> &rarr;
+      <strong>Configuration</strong> (o
+      <strong>Environment variables</strong> según la interfaz actual).
+    </li>
+    <li>
+      Añade una nueva <em>Connection String</em> con el nombre
+      <code>DefaultConnection</code>, pega la cadena con la contraseña real y
+      selecciona el tipo <code>SQLAzure</code>. Azure priorizará este valor
+      oculto sobre el del archivo de código.
+    </li>
+  </ul>
+
+<h2>3. Configuración de Entity Framework Core (Code-First)</h2>
+<p>Pasos fundamentales para preparar el backend en .NET Core, mapear los modelos de la Oposición y generar las tablas en Azure SQL.</p>
+
+<h3>Paso 1: Instalar los paquetes necesarios en el Backend</h3>
+<p>Abre la terminal de VS Code dentro de la carpeta de tu proyecto de .NET (Web API) y ejecuta estos tres comandos para instalar las herramientas de Entity Framework:</p>
+
+<pre><code># El motor principal de Entity Framework
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+# Las herramientas para poder hacer migraciones desde la consola
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+# (Opcional pero recomendado) Para que tu app lea bien las configuraciones
+dotnet add package Microsoft.EntityFrameworkCore.Tools</code></pre>
+
+<h3>Paso 2: Crear tu Modelo (La tabla del CRUD)</h3>
+<p>Vamos a crear un modelo sencillo para empezar a probar el CRUD (por ejemplo, una tabla de Temas para tu oposición). Crea una carpeta llamada <code>Models</code> (si no la tienes) y dentro un archivo <code>Tema.cs</code>:</p>
+
+<pre><code>namespace TuProyecto.Models
+&#123;
+    public class Tema
+    &#123;
+        public int Id &#123; get; set; &#125;
+        public string Titulo &#123; get; set; &#125; = string.Empty;
+        public string Bloque &#123; get; set; &#125; = string.Empty; // Ej: "Tecnología Básica"
+        public bool Completado &#123; get; set; &#125; = false;
+    &#125;
+&#125;</code></pre>
+
+<h3>Paso 3: Crear el DataContext</h3>
+<p>El <code>DataContext</code> es el puente entre tus modelos de C# y la base de datos de Azure SQL. Crea una carpeta <code>Data</code> y dentro el archivo <code>ApplicationDbContext.cs</code>:</p>
+
+<pre><code>using Microsoft.EntityFrameworkCore;
+using TuProyecto.Models;
+
+namespace TuProyecto.Data
+&#123;
+    public class ApplicationDbContext : DbContext
+    &#123;
+        public ApplicationDbContext(DbContextOptions&lt;ApplicationDbContext&gt; options) : base(options)
+        &#123;
+        &#125;
+
+        // Esto le dice a EF que cree una tabla llamada "Temas" basada en el modelo anterior
+        public DbSet&lt;Tema&gt; Temas &#123; get; set; &#125;
+    &#125;
+&#125;</code></pre>
+
+<h3>Paso 4: Registrar el Contexto en Program.cs</h3>
+<p>Abre tu archivo <code>Program.cs</code> para decirle a tu API que use esa cadena de conexión que configuramos antes:</p>
+
+<pre><code>using Microsoft.EntityFrameworkCore;
+using TuProyecto.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configurar la conexión a SQL Server / Azure SQL
+builder.Services.AddDbContext&lt;ApplicationDbContext&gt;(options =&gt;
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ... resto de tu configuración (CORS, Controladores, etc.)</code></pre>
+
+<h3>Paso 5: Lanzar las Migraciones a Azure</h3>
+<p>Con el código base guardado, abre la terminal en la raíz del backend y ejecuta los comandos de Entity Framework para impactar la nube:</p>
+
+<ol>
+  <li>
+    <strong>Crear la migración</strong> (prepara el plano de la tabla en código):
+    <pre><code>dotnet ef migrations add InitialCreate</code></pre>
+    <small><em>* Si la consola no reconoce "dotnet ef", ejecuta primero: <code>dotnet tool install --global dotnet-ef</code></em></small>
+  </li>
+  <li>
+    <strong>Actualizar la Base de Datos</strong> (crea la estructura física real en Azure SQL):
+    <pre><code>dotnet ef database update</code></pre>
+  </li>
+</ol>
+
+<p>En cuanto termine el segundo comando, tu base de datos en Azure tendrá físicamente la tabla lista para recibir y persistir datos desde el frontend.</p>
+</div>

@@ -1,0 +1,46 @@
+<div class="page-container">
+  <h1>Conexión con el Backend (ASP.NET Core)</h1>
+  <p>
+    Configuración esencial para comunicar nuestro frontend de Angular con la Web
+    API en desarrollo y producción.
+  </p>
+
+  <hr />
+
+  <h2>1. Habilitar CORS en el Backend</h2>
+  <p>
+    Imprescindible para que el navegador no bloquee las peticiones. Añade esto
+    en el <code>Program.cs</code> de tu API:
+  </p>
+
+  <pre><code>builder.Services.AddCors(options =>
+&#123;
+    options.AddPolicy("FrontendPolicy", policy =>
+    &#123;
+        policy.WithOrigins(
+                "http://localhost:4200",
+                "https://api-oposicion-tai-jorgegl.azurewebsites.net"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    &#125;);
+&#125;);</code></pre>
+
+  <h2>2. Configurar Entornos en Angular</h2>
+  <p>
+    Genera los archivos de entorno ejecutando
+    <code>ng generate environments</code> y configura tus URLs:
+  </p>
+
+  <h3>Desarrollo (<code>environment.development.ts</code>)</h3>
+  <pre><code>export const environment = &#123;
+  production: false,
+  apiUrl: 'https://localhost:5026'
+&#125;;</code></pre>
+
+  <h3>Producción (<code>environment.ts</code>)</h3>
+  <pre><code>export const environment = &#123;
+  production: true,
+  apiUrl: 'https://api-oposicion-tai-jorgegl.azurewebsites.net'
+&#125;;</code></pre>
+</div>

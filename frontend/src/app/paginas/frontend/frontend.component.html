@@ -1,0 +1,63 @@
+<div class="page-container">
+  <h1>Arquitectura de la Interfaz Frontend</h1>
+  <p>
+    Puntos clave sobre cómo se ha construido y estructurado la interfaz de
+    usuario de este panel de estudio.
+  </p>
+
+  <hr />
+
+  <h2>1. Angular &amp; Angular Material 3</h2>
+  <p>
+    El proyecto utiliza <strong>Angular 18+</strong> con componentes de tipo
+    <code>standalone</code> y el sistema de diseño <strong>Material 3</strong>.
+    Hemos seleccionado la paleta predefinida <strong>Azure/Blue</strong> durante
+    la instalación, la cual inyecta los estilos globales e iconos de forma
+    automática.
+  </p>
+
+  <h2>2. Sistema de Estilos Híbrido</h2>
+  <p>
+    Para evitar un diseño plano y mejorar el contraste visual, combinamos el
+    potencial de ambos mundos:
+  </p>
+  <ul>
+    <li>
+      <strong>Tokens Nativos:</strong> Mapeamos los colores directamente del
+      inspector usando variables CSS globales como
+      <code>var(--mat-sys-primary)</code> o
+      <code>var(--mat-sys-surface-container)</code>.
+    </li>
+    <li>
+      <strong>Clases Propias:</strong> Toda la estructura del Layout, la barra
+      lateral (<code>.sidebar</code>) y la superior (<code>.topbar</code>) se
+      controlan con clases SCSS personalizadas y encapsuladas.
+    </li>
+  </ul>
+
+  <h2>3. Navegación SPA (Sidebar + Router)</h2>
+  <p>
+    El menú lateral utiliza <code>&lt;mat-nav-list&gt;</code> integrado con el
+    enrutador nativo de Angular. Al usar <code>routerLink</code> en lugar de
+    enlaces tradicionales, el contenido se intercambia al instante dentro del
+    contenedor principal gracias a la directiva:
+  </p>
+
+  <pre><code>&lt;main class="content"&gt;
+  &lt;router-outlet&gt;&lt;/router-outlet&gt;
+&lt;/main&gt;</code></pre>
+
+  <p>
+    La barra de rutas (<code>app.routes.ts</code>) gestiona la carga diferida
+    (<em>Lazy Loading</em>) y la redirección automática al inicio:
+  </p>
+  <pre><code>&#123; path: '', redirectTo: '/estructura', pathMatch: 'full' &#125;</code></pre>
+
+  <h2>4. Modularidad con Angular CLI</h2>
+  <p>
+    Cada sección del panel se gestiona como un componente independiente y limpio
+    generado directamente desde la terminal mediante la interfaz de comandos de
+    Angular:
+  </p>
+  <pre><code>ng generate component paginas/nombre-componente</code></pre>
+</div>
