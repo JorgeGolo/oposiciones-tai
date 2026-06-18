@@ -119,13 +119,20 @@
     </li>
   </ul>
 
-<h2>3. Configuración de Entity Framework Core (Code-First)</h2>
-<p>Pasos fundamentales para preparar el backend en .NET Core, mapear los modelos de la Oposición y generar las tablas en Azure SQL.</p>
+  <h2>3. Configuración de Entity Framework Core (Code-First)</h2>
+  <p>
+    Pasos fundamentales para preparar el backend en .NET Core, mapear los
+    modelos de la Oposición y generar las tablas en Azure SQL.
+  </p>
 
-<h3>Paso 1: Instalar los paquetes necesarios en el Backend</h3>
-<p>Abre la terminal de VS Code dentro de la carpeta de tu proyecto de .NET (Web API) y ejecuta estos tres comandos para instalar las herramientas de Entity Framework:</p>
+  <h3>Paso 1: Instalar los paquetes necesarios en el Backend</h3>
+  <p>
+    Abre la terminal de VS Code dentro de la carpeta de tu proyecto de .NET (Web
+    API) y ejecuta estos tres comandos para instalar las herramientas de Entity
+    Framework:
+  </p>
 
-<pre><code># El motor principal de Entity Framework
+  <pre><code># El motor principal de Entity Framework
 dotnet add package Microsoft.EntityFrameworkCore.SqlServer
 
 # Las herramientas para poder hacer migraciones desde la consola
@@ -134,10 +141,15 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 # (Opcional pero recomendado) Para que tu app lea bien las configuraciones
 dotnet add package Microsoft.EntityFrameworkCore.Tools</code></pre>
 
-<h3>Paso 2: Crear tu Modelo (La tabla del CRUD)</h3>
-<p>Vamos a crear un modelo sencillo para empezar a probar el CRUD (por ejemplo, una tabla de Temas para tu oposición). Crea una carpeta llamada <code>Models</code> (si no la tienes) y dentro un archivo <code>Tema.cs</code>:</p>
+  <h3>Paso 2: Crear tu Modelo (La tabla del CRUD)</h3>
+  <p>
+    Vamos a crear un modelo sencillo para empezar a probar el CRUD (por ejemplo,
+    una tabla de Temas para tu oposición). Crea una carpeta llamada
+    <code>Models</code> (si no la tienes) y dentro un archivo
+    <code>Tema.cs</code>:
+  </p>
 
-<pre><code>namespace TuProyecto.Models
+  <pre><code>namespace TuProyecto.Models
 &#123;
     public class Tema
     &#123;
@@ -148,10 +160,14 @@ dotnet add package Microsoft.EntityFrameworkCore.Tools</code></pre>
     &#125;
 &#125;</code></pre>
 
-<h3>Paso 3: Crear el DataContext</h3>
-<p>El <code>DataContext</code> es el puente entre tus modelos de C# y la base de datos de Azure SQL. Crea una carpeta <code>Data</code> y dentro el archivo <code>ApplicationDbContext.cs</code>:</p>
+  <h3>Paso 3: Crear el DataContext</h3>
+  <p>
+    El <code>DataContext</code> es el puente entre tus modelos de C# y la base
+    de datos de Azure SQL. Crea una carpeta <code>Data</code> y dentro el
+    archivo <code>ApplicationDbContext.cs</code>:
+  </p>
 
-<pre><code>using Microsoft.EntityFrameworkCore;
+  <pre><code>using Microsoft.EntityFrameworkCore;
 using TuProyecto.Models;
 
 namespace TuProyecto.Data
@@ -167,10 +183,13 @@ namespace TuProyecto.Data
     &#125;
 &#125;</code></pre>
 
-<h3>Paso 4: Registrar el Contexto en Program.cs</h3>
-<p>Abre tu archivo <code>Program.cs</code> para decirle a tu API que use esa cadena de conexión que configuramos antes:</p>
+  <h3>Paso 4: Registrar el Contexto en Program.cs</h3>
+  <p>
+    Abre tu archivo <code>Program.cs</code> para decirle a tu API que use esa
+    cadena de conexión que configuramos antes:
+  </p>
 
-<pre><code>using Microsoft.EntityFrameworkCore;
+  <pre><code>using Microsoft.EntityFrameworkCore;
 using TuProyecto.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -181,20 +200,121 @@ builder.Services.AddDbContext&lt;ApplicationDbContext&gt;(options =&gt;
 
 // ... resto de tu configuración (CORS, Controladores, etc.)</code></pre>
 
-<h3>Paso 5: Lanzar las Migraciones a Azure</h3>
-<p>Con el código base guardado, abre la terminal en la raíz del backend y ejecuta los comandos de Entity Framework para impactar la nube:</p>
+  <h3>Paso 5: Lanzar las Migraciones a Azure</h3>
+  <p>
+    Con el código base guardado, abre la terminal en la raíz del backend y
+    ejecuta los comandos de Entity Framework para impactar la nube:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Crear la migración</strong> (prepara el plano de la tabla en
+      código):
+      <pre><code>dotnet ef migrations add InitialCreate</code></pre>
+      <small
+        ><em
+          >* Si la consola no reconoce "dotnet ef", ejecuta primero:
+          <code>dotnet tool install --global dotnet-ef</code></em
+        ></small
+      >
+    </li>
+    <li>
+      <strong>Actualizar la Base de Datos</strong> (crea la estructura física
+      real en Azure SQL):
+      <pre><code>dotnet ef database update</code></pre>
+    </li>
+  </ol>
+
+  <p>
+    En cuanto termine el segundo comando, tu base de datos en Azure tendrá
+    físicamente la tabla lista para recibir y persistir datos desde el frontend.
+  </p>
+</div>
+
+<hr />
+
+EXTRA
+
+<h3>Configuración de Redes y Cortafuegos en Azure (Paso Obligatorio)</h3>
+<p>
+  Por defecto, Azure bloquea cualquier intento de conexión externa. Configura
+  estos dos interruptores en la pestaña de <strong>Redes</strong> del servidor
+  (o en el menú lateral <em>Seguridad &rarr; Redes</em>):
+</p>
 
 <ol>
   <li>
-    <strong>Crear la migración</strong> (prepara el plano de la tabla en código):
-    <pre><code>dotnet ef migrations add InitialCreate</code></pre>
-    <small><em>* Si la consola no reconoce "dotnet ef", ejecuta primero: <code>dotnet tool install --global dotnet-ef</code></em></small>
+    <strong>Acceso a la red pública:</strong> Asegúrate de cambiar el selector
+    principal a <strong>"Redes seleccionadas" (Selected networks)</strong>.
+    <br /><small
+      ><em
+        >* ADVERTENCIA: Elige esta opción en lugar de "Deshabilitar". Si lo
+        dejas deshabilitado, Azure ignorará cualquier regla inferior y rechazará
+        las conexiones de desarrollo local arrojando un error de Host
+        desconocido.</em
+      ></small
+    >
   </li>
   <li>
-    <strong>Actualizar la Base de Datos</strong> (crea la estructura física real en Azure SQL):
-    <pre><code>dotnet ef database update</code></pre>
+    <strong>Regla de Cortafuegos Local (Firewall):</strong> Haz clic en el botón
+    <strong>"Agregar la dirección IPv4 de cliente actual"</strong>. Esto
+    registrará la IP pública de tu casa (ej: <code>79.116.245.209</code>) para
+    habilitar que tu terminal local pueda lanzar las migraciones sin recibir el
+    error <em>Client IP address is not allowed</em>. Recuerda darle a
+    <strong>Guardar</strong>.
   </li>
 </ol>
 
-<p>En cuanto termine el segundo comando, tu base de datos en Azure tendrá físicamente la tabla lista para recibir y persistir datos desde el frontend.</p>
-</div>
+<hr />
+
+<h4>En Local (Desarrollo) - Formato de Contraseña Especial</h4>
+<p>
+  Guardamos la cadena de conexión en el archivo
+  <code>appsettings.Development.json</code>. <strong>Regla de oro:</strong> Si
+  tu contraseña contiene caracteres especiales como <code>#</code> o
+  <code>;</code>, debes envolverla obligatoriamente entre
+  <strong>comillas simples (')</strong> para que el analizador de .NET no
+  confunda los caracteres con propiedades adicionales del string.
+</p>
+
+<pre><code>&#123;
+  "ConnectionStrings": &#123;
+    "DefaultConnection": "Server=tcp:sql-server-oposicion-jorge.database.windows.net,1433;Initial Catalog=db-oposicion-tai;Persist Security Info=False;User ID=dbadmin;Password='Tu#Contraseña;Especial';MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  &#125;
+&#125;</code></pre>
+<p>
+  <small
+    ><em
+      >* REVISIÓN: El host debe terminar estrictamente en
+      <code>.windows.net</code> y especificar el puerto de SQL Server
+      (<code>,1433</code>) para evitar el error de Win32Exception 11001 (Host
+      desconocido).</em
+    ></small
+  >
+</p>
+
+<hr />
+
+<h4>Paso 4: Registrar el Contexto y Habilitar Resiliencia en Program.cs</h4>
+<p>
+  Para evitar fallos transitorios causados por la latencia o por el retraso de
+  reactivación de la base de datos Serverless (capa gratuita que se duerme si no
+  se usa), configura la estrategia de reintentos automáticos
+  (<code>EnableRetryOnFailure</code>):
+</p>
+<pre><code>using Microsoft.EntityFrameworkCore;
+using TuProyecto.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext&lt;ApplicationDbContext&gt;(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        &#123;
+            // Si Azure tarda en responder o despertar, .NET lo reintentará automáticamente
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 6,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null);
+        &#125;));</code></pre>
