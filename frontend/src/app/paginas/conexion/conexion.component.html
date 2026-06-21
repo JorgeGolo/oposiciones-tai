@@ -44,3 +44,45 @@
   apiUrl: 'https://api-oposicion-tai-jorgegl.azurewebsites.net'
 &#125;;</code></pre>
 </div>
+
+<h2>Controlador del Backend (ASP.NET Core)</h2>
+
+<h3>Rutas automáticas mediante atributos</h3>
+<p>
+  En ASP.NET Core no existe un archivo de rutas centralizado como en otros
+  frameworks. Las rutas se definen directamente en el controlador mediante
+  atributos:
+</p>
+<ul>
+  <li>
+    <code>[ApiController]</code>: marca la clase como controlador de API REST.
+  </li>
+  <li>
+    <code>[Route("api/[controller]")]</code>: genera el prefijo
+    <code>/api/Temas</code> automáticamente a partir del nombre de la clase.
+  </li>
+  <li>
+    <code>[HttpGet]</code>, <code>[HttpPost]</code>, <code>[HttpPut id]</code>,
+    <code>[HttpDelete( id )]</code>: definen el método HTTP y el segmento de
+    ruta de cada acción.
+  </li>
+</ul>
+
+<h3>TemasController.cs</h3>
+<p>
+  Crea el archivo <code>Controllers/TemasController.cs</code> en el backend:
+</p>
+<pre>
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Backend.Data;
+using Backend.Models;
+
+namespace Backend.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class TemasController : ControllerBase
+
+(...)
+</pre>

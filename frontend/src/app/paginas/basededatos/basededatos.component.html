@@ -318,3 +318,55 @@ builder.Services.AddDbContext&lt;ApplicationDbContext&gt;(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorNumbersToAdd: null);
         &#125;));</code></pre>
+
+<h3>Migraciones automáticas al arrancar</h3>
+<p>
+  Para que las tablas se creen automáticamente en Azure SQL cada vez que se
+  despliega una nueva migración, añade este bloque en
+  <code>Program.cs</code> justo después de
+  <code>var app = builder.Build();</code>:
+</p>
+<pre>
+using (var scope = app.Services.CreateScope())
+&#123;
+    var db = scope.ServiceProvider.GetRequiredService&lt;ApplicationDbContext&gt;();
+    db.Database.Migrate();
+&#125;
+</pre>
+<p>
+  Este bloque es <strong>idempotente</strong>: comprueba en la tabla interna
+  <code>__EFMigrationsHistory</code> qué migraciones ya se han aplicado y solo
+  ejecuta las pendientes. Si no hay ninguna nueva, no hace nada.
+</p>
+
+<h3>Importante: entornos de base de datos</h3>
+<p>
+  El comando <code>dotnet ef database update</code> aplica las migraciones
+  contra la base de datos que apunte tu cadena de conexión
+  <strong>local</strong> (la de <code>appsettings.Development.json</code>). Es
+  decir, crea las tablas en tu SQL Server local o en el SQL Azure si tu máquina
+  tiene acceso directo, pero
+  <strong
+    >no tiene ningún efecto sobre la base de datos de producción en
+    Azure</strong
+  >
+  durante el despliegue.
+</p>
+<p>
+  Por eso es imprescindible el bloque <code>db.Database.Migrate()</code> en
+  <code>Program.cs</code>: es el único mecanismo que se ejecuta desde dentro del
+  App Service de Azure, con la cadena de conexión de producción, y que por tanto
+  puede crear o actualizar las tablas en Azure SQL automáticamente cada vez que
+  se despliega una nueva versión.
+</p>
+<p>Resumen práctico:</p>
+<ul>
+  <li>
+    <code>dotnet ef database update</code> → aplica migraciones en
+    <strong>local</strong>, lo ejecutas tú manualmente.
+  </li>
+  <li>
+    <code>db.Database.Migrate()</code> → aplica migraciones en
+    <strong>producción</strong>, lo ejecuta la app sola al arrancar.
+  </li>
+</ul>
