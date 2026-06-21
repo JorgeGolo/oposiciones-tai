@@ -9,6 +9,18 @@
     <mat-nav-list>
       <a
         mat-list-item
+        routerLink="/temas"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Temas</a
+      >
+    </mat-nav-list>
+
+    <div class="sidebar__brand">Desarrollo</div>
+
+    <mat-nav-list>
+      <a
+        mat-list-item
         routerLink="/estructura"
         routerLinkActive="active-link"
         [routerLinkActiveOptions]="{ exact: true }"

@@ -17,6 +17,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();  // ← añadir
+
+builder.Services.AddSwaggerGen();  // ← esto
 
 // CORS para el font
 // habilitamos CORS para poder comunicarnos con el front de Angular
@@ -34,6 +37,11 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();       // ← esto
+    app.UseSwaggerUI();     // ← y esto
+}
 
 // necesario para el CORS
 app.UseCors("FrontendPolicy");
@@ -64,6 +72,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+app.MapControllers();  // ← añadir
 
 app.Run();
 

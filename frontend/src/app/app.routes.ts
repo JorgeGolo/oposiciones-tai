@@ -11,6 +11,13 @@ export const routes: Routes = [
         (m) => m.InicioComponent,
       ),
   },
+  {
+    path: 'temas',
+    loadComponent: () =>
+      import('./temas/components/tema-list/tema-list.component').then(
+        (m) => m.TemaListComponent,
+      ),
+  },
 
   {
     path: 'conexion-backend',

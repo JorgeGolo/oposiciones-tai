@@ -61,3 +61,82 @@
   </p>
   <pre><code>ng generate component paginas/nombre-componente</code></pre>
 </div>
+<h2>CRUD de la tabla Temas</h2>
+
+<h3>La estructura ideal de archivos (Arquitectura)</h3>
+<p>
+  Dentro de tu carpeta <code>temas/</code>, la estructura limpia debería quedar
+  así:
+</p>
+<ul>
+  <li>
+    <code>temas.service.ts</code>: El cerebro. Contiene los métodos HTTP
+    (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>)
+    para pegarle a tu API de .NET.
+  </li>
+  <li>
+    <code>tema-list/</code>: El componente principal. Muestra la tabla o lista
+    con todos los temas (<em>Read</em>) y tiene los botones de "Eliminar"
+    (<em>Delete</em>).
+  </li>
+  <li>
+    <code>tema-form/</code>: El componente formulario. Sirve tanto para crear
+    como para editar (<em>Create</em> y <em>Update</em>). Reutilizar el mismo
+    formulario para ambas acciones te ahorra la mitad del código.
+  </li>
+</ul>
+
+<h3>Flujo de trabajo en Angular</h3>
+<pre>
+[ tema-list ] ──(Click en Editar)──&gt; [ tema-form ]
+      │                                    │
+(Llama al Servicio)                (Llama al Servicio)
+      │                                    │
+      ▼                                    ▼
+ [ temas.service ] &lt;──────HTTP──────&gt; [ API .NET Core ]
+</pre>
+
+<ol>
+  <li>
+    <strong>El Servicio (<code>temas.service.ts</code>):</strong> Centraliza las
+    llamadas a Azure. Tendrá funciones como <code>getTemas()</code>,
+    <code>createTema(tema)</code>, <code>updateTema(id, tema)</code> y
+    <code>deleteTema(id)</code>.
+  </li>
+  <li>
+    <strong>La Lista (<code>tema-list</code>):</strong> Al arrancar, le pide los
+    temas al servicio y los pinta en un bucle (<code>*ngFor</code> o
+    <code>arroba for</code>). Si el usuario pulsa "Eliminar", llama al servicio
+    y refresca la lista. Si pulsa "Nuevo" o "Editar", Angular Router lo lleva al
+    formulario.
+  </li>
+  <li>
+    <strong>El Formulario (<code>tema-form</code>):</strong>
+    <ul>
+      <li>
+        Si entra por <code>/temas/nuevo</code>, se muestra vacío. Al enviar,
+        hace un <code>POST</code>.
+      </li>
+      <li>
+        Si entra por <code>/temas/editar/5</code>, pide los datos del tema ID 5
+        al servicio, rellena los inputs, y al enviar hace un <code>PUT</code>.
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h3>¿Qué comandos lanzar en la terminal?</h3>
+<p>
+  Para generar esta estructura limpia de una sola vez, colócate en la carpeta de
+  tu frontend de Angular y ejecuta:
+</p>
+<pre>
+# 1. Crear el servicio que conectará con .NET
+ng generate service temas/services/temas
+
+# 2. Crear el componente para listar y borrar
+ng generate component temas/components/tema-list
+
+# 3. Crear el componente para crear y editar
+ng generate component temas/components/tema-form
+</pre>

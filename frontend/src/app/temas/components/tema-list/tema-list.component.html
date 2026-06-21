@@ -1,0 +1,32 @@
+<div class="lista-container">
+  <h2>Temas</h2>
+
+  @if (cargando) {
+    <p>Cargando...</p>
+  } @else if (error) {
+    <p class="error">{{ error }}</p>
+  } @else if (temas.length === 0) {
+    <p>No hay temas registrados todavía.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Bloque</th>
+          <th>Completado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (tema of temas; track tema.id) {
+          <tr>
+            <td>{{ tema.id }}</td>
+            <td>{{ tema.titulo }}</td>
+            <td>{{ tema.bloque }}</td>
+            <td>{{ tema.completado ? "Sí" : "No" }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
