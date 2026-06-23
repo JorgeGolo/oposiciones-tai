@@ -13,10 +13,29 @@ export const routes: Routes = [
   },
   {
     path: 'temas',
-    loadComponent: () =>
-      import('./temas/components/tema-list/tema-list.component').then(
-        (m) => m.TemaListComponent,
-      ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./temas/components/tema-list/tema-list.component').then(
+            (m) => m.TemaListComponent,
+          ),
+      },
+      {
+        path: 'nuevo',
+        loadComponent: () =>
+          import('./temas/components/tema-form/tema-form.component').then(
+            (m) => m.TemaFormComponent,
+          ),
+      },
+      {
+        path: 'editar/:id',
+        loadComponent: () =>
+          import('./temas/components/tema-form/tema-form.component').then(
+            (m) => m.TemaFormComponent,
+          ),
+      },
+    ],
   },
 
   {

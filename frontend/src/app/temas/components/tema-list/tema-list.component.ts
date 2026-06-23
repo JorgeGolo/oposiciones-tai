@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { TemasService } from '../../services/temas.service';
 import { Tema } from '../../models/tema.model';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-tema-list',
   imports: [CommonModule],

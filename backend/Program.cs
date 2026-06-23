@@ -1,35 +1,35 @@
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 
+var summaries = new[]
+{
+    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+};
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlServerOptionsAction: sqlOptions =>
         {
-            // Esto le dice a .NET que si Azure tarda en responder, lo reintente 6 veces
             sqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 6,
                 maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorNumbersToAdd: null);
         }));
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();  // ← añadir
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
 
-builder.Services.AddSwaggerGen();  // ← esto
-
-// CORS para el font
-// habilitamos CORS para poder comunicarnos con el front de Angular
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:4200",          // Angular en local
-                "https://purple-ground-07ca81003.7.azurestaticapps.net/" // lo rellenamos en el paso 8
+                "http://localhost:4200",
+                "https://purple-ground-07ca81003.7.azurestaticapps.net"
               )
               .AllowAnyHeader()
               .AllowAnyMethod();
@@ -37,31 +37,35 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
+
+// ← NUEVO: aplicar migraciones automáticamente al arrancar
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();       // ← esto
-    app.UseSwaggerUI();     // ← y esto
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
 }
 
-// necesario para el CORS
-app.UseCors("FrontendPolicy");
+// TEMPORAL para depurar - quitar después
+app.UseExceptionHandler(a => a.Run(async context =>
+{
+    var ex = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+    if (ex != null)
+        await context.Response.WriteAsJsonAsync(new { error = ex.Error.Message, detalle = ex.Error.ToString() });
+}));
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.MapOpenApi();
 }
 
+app.UseCors("FrontendPolicy");
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
@@ -72,9 +76,10 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
-app.MapControllers();  // ← añadir
 
+app.MapControllers();
 app.Run();
+
 
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

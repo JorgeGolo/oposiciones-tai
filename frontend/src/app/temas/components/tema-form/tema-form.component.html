@@ -1,1 +1,37 @@
-<p>tema-form works!</p>
+<div class="form-container">
+  <h2>{{ esEdicion ? 'Editar tema' : 'Nuevo tema' }}</h2>
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="campo">
+      <label for="titulo">Título</label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="Ej: Sistemas operativos" />
+      @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
+        <span class="error">El título es obligatorio.</span>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="bloque">Bloque</label>
+      <input id="bloque" type="text" formControlName="bloque" placeholder="Ej: Tecnología Básica" />
+      @if (form.get('bloque')?.invalid && form.get('bloque')?.touched) {
+        <span class="error">El bloque es obligatorio.</span>
+      }
+    </div>
+
+    <div class="campo campo--check">
+      <label for="completado">Completado</label>
+      <input id="completado" type="checkbox" formControlName="completado" />
+    </div>
+
+    <div class="acciones">
+      <button type="button" (click)="router.navigate(['/temas'])">Cancelar</button>
+      <button type="submit" [disabled]="guardando">
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>

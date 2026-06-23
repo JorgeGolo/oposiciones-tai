@@ -140,3 +140,31 @@ ng generate component temas/components/tema-list
 # 3. Crear el componente para crear y editar
 ng generate component temas/components/tema-form
 </pre>
+
+<h3>Crear nuevos tems</h3>
+<ul>
+  <li>
+    Hacemos que las rutas de 'temas' en app-routes.ts tenga hijos para añadir
+    las rutas de edición y creación
+    <br />
+    <pre>
+      &#123;
+        path: 'nuevo',
+        loadComponent: () =>
+          import('./temas/components/tema-form/tema-form.component').then(
+            (m) => m.TemaFormComponent,
+       &#125;,
+      &#125;,
+      &#123;
+        path: 'editar/:id',
+        loadComponent: () =>
+          import('./temas/components/tema-form/tema-form.component').then(
+            (m) => m.TemaFormComponent,
+          ),
+      &#125;,
+    </pre>
+  </li>
+  <li>Botón "Nuevo tema" en tema-list.component.html</li>
+  <li>Escribir el componente tema-form, el html y el ts</li>
+  <li>En tema-list.component.ts añadir RouterModule a los imports</li>
+</ul>
