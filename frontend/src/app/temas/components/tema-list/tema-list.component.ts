@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-tema-list',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './tema-list.component.html',
   styleUrl: './tema-list.component.scss',
 })
